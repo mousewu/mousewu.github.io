@@ -1,0 +1,11 @@
+title: Xianyue Wu
+description: Research notes on language-model agents, reinforcement learning, and reliable AI systems.
+url: https://mousewu.github.io
+baseurl: ""
+author:
+  name: Xianyue Wu
+  github: mousewu
+markdown: kramdown
+permalink: /writing/:title/
+timezone: Asia/Shanghai
+

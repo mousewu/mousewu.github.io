@@ -1,0 +1,20 @@
+---
+layout: default
+---
+<article class="post shell-narrow">
+  <header class="post-header">
+    <a class="eyebrow back-link" href="{{ '/writing/' | relative_url }}">Writing</a>
+    <h1>{{ page.title }}</h1>
+    <p class="post-deck">{{ page.description }}</p>
+    <div class="post-meta">
+      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: '%B %-d, %Y' }}</time>
+      <span>·</span>
+      <span>{{ page.reading_time | default: '14 min read' }}</span>
+      <span>·</span>
+      <span>Agentic RL</span>
+    </div>
+  </header>
+  <div class="post-rule" aria-hidden="true"></div>
+  <div class="post-content">{{ content }}</div>
+</article>
+
