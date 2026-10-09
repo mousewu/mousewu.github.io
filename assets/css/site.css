@@ -198,6 +198,11 @@ img { display: block; max-width: 100%; height: auto; }
 
 .site-footer { border-top: 1px solid var(--line); }
 .footer-row { min-height: 110px; display: flex; align-items: center; justify-content: space-between; gap: 24px; color: var(--faint); font-size: .82rem; }
+.footer-meta { display: flex; align-items: center; gap: 16px; }
+.footer-email { display: grid; place-items: center; width: 36px; height: 36px; color: var(--muted); border: 1px solid var(--line); border-radius: 50%; background: var(--secondary-button); }
+.footer-email:hover { color: var(--accent); border-color: var(--accent); }
+.footer-email:focus-visible { color: var(--accent); outline: 2px solid var(--accent); outline-offset: 3px; }
+.footer-email svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 
 @media (max-width: 820px) {
   :root { --shell: min(100% - 28px, 700px); --narrow: min(100% - 28px, 700px); }
@@ -225,7 +230,7 @@ img { display: block; max-width: 100%; height: auto; }
   .page-intro h1 { font-size: 3.15rem; }
   .post { padding-block: 62px 90px; }
   .post-header h1 { font-size: 2.85rem; }
-  .footer-row { align-items: flex-start; flex-direction: column; justify-content: center; gap: 0; padding-block: 24px; }
+  .footer-row { align-items: flex-start; flex-direction: column; justify-content: center; gap: 8px; padding-block: 24px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

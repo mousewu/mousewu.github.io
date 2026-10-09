@@ -17,7 +17,7 @@
       })();
     </script>
     <link rel="icon" type="image/svg+xml" href="{{ '/assets/favicon.svg' | relative_url }}">
-    <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}?v=3">
+    <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}?v=4">
     <script src="{{ '/assets/js/theme.js' | relative_url }}?v=3" defer></script>
   </head>
   <body>
@@ -56,7 +56,15 @@
     <footer class="site-footer">
       <div class="shell footer-row">
         <p>Notes on agents that learn, act, and recover.</p>
-        <p>© {{ site.time | date: '%Y' }} Xianyue Wu</p>
+        <div class="footer-meta">
+          <a class="footer-email" href="mailto:wuxianyue@gmail.com" aria-label="Email Xianyue Wu at wuxianyue@gmail.com" title="wuxianyue@gmail.com">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+              <path d="m4 7 8 6 8-6"></path>
+            </svg>
+          </a>
+          <p>© {{ site.time | date: '%Y' }} Xianyue Wu</p>
+        </div>
       </div>
     </footer>
   </body>
