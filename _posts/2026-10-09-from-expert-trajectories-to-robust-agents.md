@@ -457,6 +457,31 @@ Coupled-prompt LOO 同样具有竞争力，并在 action-only 条件下取得最
 
 动作语法、工具 schema、故障注入、错误处理、交互轮数和上下文截断都会改变有效 MDP。训练与评测必须使用一致的 harness 语义，否则两个都叫“ALFWorld”的实验，模型实际解决的可能是不同问题。
 
+#### 延伸：Terminal-RSI 中的同类问题
+
+我的 Terminal-RSI 技术分享从终端智能体出发，讨论了与本文相邻但不同的问题：如何把执行轨迹、harness 经验和 verifier 反馈组织成可递归的训练过程。下面三页最能说明两项研究之间的联系。它们用于补充概念背景，不是本文 ALFWorld 实验结果的证据。
+
+<figure class="slide-figure">
+  <a href="/assets/blog/terminal-rsi/terminal-agent-loop.jpg" target="_blank" rel="noopener">
+    <img src="/assets/blog/terminal-rsi/terminal-agent-loop.jpg" alt="Terminal Agent 从任务指令开始，经过多轮 LLM 动作、长观察日志和 Verifier 得到终局奖励的交互闭环">
+  </a>
+  <figcaption>终端任务同样是持续的“决策—执行—观察”闭环。动作很短、观察可能很长，奖励往往延迟到 verifier 确认最终结果之后才出现。点击图片可查看大图。</figcaption>
+</figure>
+
+<figure class="slide-figure">
+  <a href="/assets/blog/terminal-rsi/rsi-optimization-objects.jpg" target="_blank" rel="noopener">
+    <img src="/assets/blog/terminal-rsi/rsi-optimization-objects.jpg" alt="Recursive Self-Improvement 的三类优化对象：Artifacts、Harness 和 Model">
+  </a>
+  <figcaption>RSI 可以优化产出物、harness 或模型参数。本文的 Noise RL 主要研究第三类，但训练信号和可观测行为仍由前两类共同定义。</figcaption>
+</figure>
+
+<figure class="slide-figure">
+  <a href="/assets/blog/terminal-rsi/recursive-training-problems.jpg" target="_blank" rel="noopener">
+    <img src="/assets/blog/terminal-rsi/recursive-training-problems.jpg" alt="递归训练稳定性的三个问题：Temporal Dilation、Value Drift 和 Reward Alignment">
+  </a>
+  <figcaption>Terminal-RSI 将递归训练的不稳定性归纳为时间尺度、价值估计和奖励含义的对齐问题。这与本文观察到的异步策略漂移、稀疏有效 group 和后期策略崩溃形成了直接呼应。</figcaption>
+</figure>
+
 ### 在线 reward 不是独立评测
 
 训练 rollout 受到任务采样、异步策略版本和随机故障影响。因此我们使用 held-out `valid_unseen` 任务、固定采样参数、每个任务重复 4 次，并为评测独立启动推理服务。

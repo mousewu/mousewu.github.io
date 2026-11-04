@@ -204,6 +204,11 @@ img { display: block; max-width: 100%; height: auto; }
 .post-content th, .post-content td { padding: 12px 14px; border: 1px solid var(--line); text-align: left; white-space: nowrap; }
 .post-content th { color: var(--ink); background: var(--panel-2); }
 .post-content img { margin: 2.2rem auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 24px 60px var(--shadow); }
+.post-content .slide-figure { margin: 2.6rem 0; }
+.post-content .slide-figure a { display: block; }
+.post-content .slide-figure img { margin: 0 auto; transition: transform .18s ease, box-shadow .18s ease; }
+.post-content .slide-figure a:hover img { transform: translateY(-2px); box-shadow: 0 30px 70px var(--shadow); }
+.post-content .slide-figure figcaption { margin-top: .85rem; color: var(--muted); font-size: .84rem; line-height: 1.65; text-align: center; }
 
 .site-footer { border-top: 1px solid var(--line); }
 .footer-row { min-height: 110px; display: flex; align-items: center; justify-content: space-between; gap: 24px; color: var(--faint); font-size: .82rem; }
