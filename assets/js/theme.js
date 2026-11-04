@@ -30,3 +30,40 @@
     if (!hasSavedTheme) applyTheme(event.matches ? 'light' : 'dark');
   });
 })();
+
+(() => {
+  const storageKey = 'xw-language';
+  const root = document.documentElement;
+  const toggle = document.querySelector('[data-language-toggle]');
+  const label = toggle?.querySelector('[data-language-label]');
+  const page = document.body;
+  const description = document.querySelector('meta[name="description"]');
+
+  function applyLanguage(language, persist = false) {
+    const next = language === 'zh' ? 'zh' : 'en';
+    root.dataset.lang = next;
+    root.lang = next === 'zh' ? 'zh-CN' : 'en';
+    const pageTitle = next === 'zh' ? page?.dataset.pageTitleZh : page?.dataset.pageTitleEn;
+    const pageDescription = next === 'zh' ? page?.dataset.pageDescriptionZh : page?.dataset.pageDescriptionEn;
+    if (pageTitle) document.title = `${pageTitle} · Xianyue Wu`;
+    if (description && pageDescription) description.content = pageDescription;
+
+    if (persist) {
+      try { localStorage.setItem(storageKey, next); } catch { /* Preference remains active for this page. */ }
+    }
+
+    if (toggle && label) {
+      const switchToChinese = next === 'en';
+      label.textContent = switchToChinese ? '中' : 'EN';
+      const accessibleLabel = switchToChinese ? '切换为中文' : 'Switch to English';
+      toggle.setAttribute('aria-label', accessibleLabel);
+      toggle.setAttribute('title', accessibleLabel);
+      toggle.setAttribute('aria-pressed', String(next === 'zh'));
+    }
+  }
+
+  applyLanguage(root.dataset.lang);
+  toggle?.addEventListener('click', () => {
+    applyLanguage(root.dataset.lang === 'zh' ? 'en' : 'zh', true);
+  });
+})();

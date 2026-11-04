@@ -1,12 +1,17 @@
 ---
 layout: post
 title: "From Expert Trajectories to Robust Agents: What Noise RL Actually Teaches"
+title_zh: "从专家轨迹到鲁棒智能体：Noise RL 到底教会了模型什么"
 description: "A multi-seed ALFWorld study separating task learning from robustness learning across clean, matched, independent, and coupled-noise reinforcement learning."
+description_zh: "一项多随机种子的 ALFWorld 研究，对比 Clean、Matched、Independent 与 Coupled-noise 强化学习，区分任务学习与鲁棒性学习。"
 date: 2026-10-09
 last_modified_at: 2026-11-04
 categories: [Agentic RL, LLM Agents]
 reading_time: 18 min read
+reading_time_zh: 阅读约 18 分钟
 ---
+
+<div data-lang-content="en" markdown="1">
 
 > **Updated November 4, 2026.** This post now reports the complete evaluation matrix: four RL methods, three training seeds, five evaluation conditions, 134 held-out tasks, and 32,160 RL evaluation episodes. The central result is sharper than the original single-run story: clean RL learns the task, but noise RL is required to make the policy robust. Independent-noise LOO gives the best overall trade-off, reaching **91.4% matched-noise success** and **82.5% strong-noise success**, while preserving **95.8% clean success**.
 
@@ -250,3 +255,252 @@ Before treating the result as a finished paper claim, the next priorities are:
 - [Project source code](https://github.com/mousewu/slime-noise-rl)
 
 > **Scope note:** These results use a project-specific ALFWorld text harness, fault injection, checkpoint-selection procedure, and evaluation protocol. They are not standard ALFWorld leaderboard numbers. RL values are means over three training seeds; the SFT baseline is one trained checkpoint. Differences among noise-RL variants require paired hierarchical analysis before being treated as statistically significant.
+
+</div>
+
+<div data-lang-content="zh" markdown="1">
+
+> **更新于 2026 年 11 月 4 日。** 本文现在包含完整实验矩阵：4 种 RL 方法、3 个训练随机种子、5 种评测条件、134 个未见任务，以及 32,160 条 RL 评测轨迹。结论比早期单次实验更清晰：Clean RL 主要学习任务能力，而要让策略真正鲁棒，还需要 Noise RL。Independent-noise LOO 的综合表现最好，在保留 **95.8% clean 成功率**的同时，matched-noise 成功率达到 **91.4%**，strong-noise 成功率达到 **82.5%**。
+
+## 研究问题
+
+LLM 智能体不只是一组模型权重。它的行为还取决于模型周围的 harness：prompt、工具 schema、动作解析器、环境状态转移、观察格式、上下文策略以及终止规则。
+
+在本项目中，一轮 ALFWorld 交互如下：
+
+```text
+模型生成一个 JSON 动作
+          ↓
+Harness 解析动作并在 ALFWorld 中执行
+          ↓
+环境返回文本观察
+          ↓
+观察被加入上下文，模型继续行动
+```
+
+这实际上包含两个不同的学习问题：
+
+1. **任务学习：** 智能体能否高效完成 ALFWorld 任务？
+2. **鲁棒性学习：** 当 harness 丢失动作或观察时，智能体还能否完成任务？
+
+下面的实验将两者分开考察。我们先通过监督微调（SFT）建立可用的初始策略，再将 Clean RL 与三种基于 leave-one-out（LOO）的噪声训练方法进行比较。
+
+## 实验设置
+
+基础模型为 `Qwen3-4B-Instruct-2507`，训练框架使用 [Slime](https://github.com/THUDM/slime)，环境使用 [ALFWorld](https://github.com/alfworld/alfworld)，实验指标记录在 SwanLab 中。
+
+| 阶段 | 主要配置 |
+| --- | --- |
+| SFT | 3,553 条专家轨迹、21,335 个专家动作；仅对 action 计算 loss；batch size 32；训练 3 个 epoch；峰值学习率 `5e-6`；4×A100 80GB |
+| RL | Fully asynchronous LOO/GRPO 风格训练；每个 prompt 采样 8 条轨迹；8×A100 80GB，划分给 actor 训练和 rollout |
+| 评测 | 134 个 `valid_unseen` 任务 × 4 次重复，即每个 checkpoint-condition 单元 536 条轨迹；temperature 0.8 |
+| 重复实验 | 4 种 RL 方法 × 3 个随机种子（42、43、44）× 5 种条件，共 60 个单元、32,160 条 RL 轨迹 |
+
+SFT 与 RL 使用相同的 JSON 动作表示和在线环境协议。SFT 只在 assistant 动作上计算 loss，不对 system prompt 或环境 observation 计算 loss。
+
+### 训练方法
+
+- **Clean RL：** 训练时不注入动作或观察故障。
+- **Matched-noise LOO：** 同一 group 中被比较的样本使用相同的噪声模式。
+- **Independent-noise LOO：** 每条 rollout 独立采样噪声，使组内比较对 harness 的随机性进行平均。
+- **Coupled-prompt LOO：** 在 prompt/group 层面对故障进行耦合，在保留噪声交互的同时控制共同随机性。
+
+### 评测条件
+
+| 条件 | 评测时注入的故障 |
+| --- | --- |
+| Clean | 不注入故障 |
+| Action-only | 只丢弃 action |
+| Observation-only | 只丢失 observation |
+| Matched | 15% action drop 与 10% observation loss，与主要训练设置一致 |
+| Strong | 更强的组合噪声压力测试 |
+
+噪声是在真实的多轮交互中注入的，而不是简单破坏静态标签。智能体必须判断动作是否真正生效，在状态信息缺失时恢复，并在固定交互预算内完成任务。
+
+## 阶段一：专家 SFT 建立可用策略
+
+如果几乎所有轨迹都失败，稀疏奖励 RL 很难自行启动。当同一 group 内所有样本奖励相同时，相对 advantage 为零，优化器得不到有用的比较信号。
+
+SFT 用于教会模型三个前置能力：
+
+1. 输出 harness 可以解析的 JSON 动作；
+2. 理解 ALFWorld 的动作与观察；
+3. 将初始成功率提高到 RL 能够比较成功与失败轨迹的范围。
+
+SFT 共完成 333 次优化更新，交叉熵 loss 从 **1.174** 降到 **0.018**，大部分改善发生在训练早期。
+
+![ALFWorld SFT loss](/assets/blog/alfworld_sft_loss.png)
+
+但低训练 loss 并不代表策略已经可靠。在最终统一评测协议下，SFT checkpoint 的成功率为：
+
+| Clean | Action-only | Observation-only | Matched | Strong |
+| ---: | ---: | ---: | ---: | ---: |
+| 51.1% | 39.7% | 48.5% | 35.8% | 30.0% |
+
+多数失败来自耗尽交互轮数，而不是输出格式错误。SFT 已经教会模型基本接口和操作方式，但策略仍然低效且脆弱。
+
+## 阶段二：RL 学会完成任务，Noise RL 学会故障恢复
+
+对于每个任务，策略生成 8 条 rollout，并使用 leave-one-out baseline 计算相对 advantage。成功动作序列获得正向信号，同一任务中的失败轨迹作为对照。
+
+下图来自早期的 matched-noise 探索实验。它可以说明训练动态，但后文的多随机种子汇总结果并不是从这条曲线计算得出的。
+
+![ALFWorld RL effective reward window](/assets/blog/alfworld_rl_reward_effective.png)
+
+早期实验揭示了两个后来反复出现的现象：
+
+- RL 会显著缩短成功策略；
+- 在性能饱和后继续更新，可能使一个很强的策略发生崩溃。
+
+需要注意，RL 的 `train/loss` 不能像 SFT 交叉熵一样理解。它受到相对 advantage、importance ratio、clip，以及正负样本相互抵消的影响。Held-out 成功率、非零 advantage group、策略漂移、梯度范数和轨迹效率更值得关注。
+
+## 主要结果：完整的多随机种子评测
+
+下表给出三个独立 RL 训练随机种子的平均成功率 ± 标准差。SFT baseline 只有一个训练 checkpoint，因此没有跨随机种子的标准差。
+
+| 方法 | Clean | Action-only | Observation-only | Matched | Strong |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| SFT baseline | 51.12 | 39.74 | 48.51 | 35.82 | 30.04 |
+| Clean RL | **97.57 ± 0.49** | 74.32 ± 2.72 | 93.22 ± 0.28 | 68.91 ± 1.55 | 48.07 ± 0.88 |
+| Matched-noise LOO | 95.27 ± 0.66 | 92.91 ± 1.17 | 93.03 ± 1.32 | 88.93 ± 0.92 | **82.90 ± 0.54** |
+| Independent-noise LOO | 95.77 ± 0.22 | 94.09 ± 0.47 | **94.53 ± 1.03** | **91.36 ± 0.84** | 82.52 ± 1.12 |
+| Coupled-prompt LOO | 96.08 ± 0.56 | **94.59 ± 0.49** | 94.40 ± 0.81 | 90.49 ± 0.93 | 81.22 ± 0.78 |
+
+所有数值均为百分比。粗体表示每种评测条件下表现最好的 RL 方法。
+
+### 结果一：Clean RL 学会了通用任务能力
+
+相对于 SFT，Clean RL 的成功率提升为：
+
+- Clean：**+46.45 个百分点**；
+- Action-only：**+34.58 个百分点**；
+- Observation-only：**+44.71 个百分点**；
+- Matched：**+33.09 个百分点**；
+- Strong：**+18.03 个百分点**。
+
+因此，普通在线 RL 本身已经很有价值：它将模仿策略变成更强的任务求解策略，并将部分能力迁移到训练时未见的故障条件。
+
+### 结果二：Clean 能力不等于鲁棒能力
+
+Clean RL 在无噪声环境中达到 97.57%，但加入 action drop 后降至 74.32%，matched 组合噪声下降至 68.91%，strong 噪声下仅为 48.07%。Strong 相对 clean 的损失达到 **49.50 个百分点**。
+
+单独丢失 observation 的影响小得多，Clean RL 仍可达到 93.22%。这说明在当前 harness 中，**action drop 是主要故障来源**。丢失一次观察通常可以从后续状态中恢复，而静默丢失一个改变状态的动作，会直接破坏智能体对世界状态的假设。
+
+### 结果三：Noise RL 弥补了大部分鲁棒性差距
+
+Independent-noise LOO 相对 Clean RL 的变化为：
+
+| Clean | Action-only | Observation-only | Matched | Strong |
+| ---: | ---: | ---: | ---: | ---: |
+| −1.80 | **+19.78** | +1.31 | **+22.45** | **+34.45** |
+
+这是本文最重要的研究结果：只牺牲少量 clean 性能，就能换取 action 故障和组合噪声下的大幅提升。这并不只是任务能力变强，而是训练分布改变了智能体学到的恢复行为。
+
+### 结果四：Independent-noise LOO 的综合权衡最好
+
+| 方法 | 五种条件平均 | 四种噪声条件平均 | 最差条件 |
+| --- | ---: | ---: | ---: |
+| Clean RL | 76.42 | 71.13 | 48.07 |
+| Matched-noise LOO | 90.61 | 89.44 | **82.90** |
+| Independent-noise LOO | **91.65** | **90.62** | 82.52 |
+| Coupled-prompt LOO | 91.36 | 90.17 | 81.22 |
+
+Independent-noise LOO 在全部条件和噪声条件上的平均值都最高。在 matched 评测中，它对三个训练随机种子都超过 Matched-noise LOO，差值分别为 **+2.61、+2.05 和 +2.61 个百分点**。
+
+一种可能解释是：独立采样故障能够避免 group baseline 将某一次特定噪声实现误认为任务本身的一部分。策略必须学会跨多种故障实现都能成功的行为，而不是适配一个共享的破坏模式。这是根据实验设计得到的推断，仍需进一步消融实验确认因果关系。
+
+Coupled-prompt LOO 同样具有竞争力，并在 action-only 条件下取得最高均值，但在 matched 和 strong 组合噪声下没有稳定超过 Independent-noise。至少在当前设置中，更复杂的耦合没有带来明确的综合优势。
+
+## 鲁棒策略也更加高效
+
+性能提升并不是通过更多重试实现的。Independent-noise LOO 相比 SFT 显著减少了生成 token：
+
+| 条件 | SFT tokens | Independent-noise tokens | 降幅 |
+| --- | ---: | ---: | ---: |
+| Clean | 285.0 | 126.2 | 55.7% |
+| Action-only | 355.3 | 155.9 | 56.1% |
+| Observation-only | 299.7 | 140.5 | 53.1% |
+| Matched | 370.9 | 174.3 | 53.0% |
+| Strong | 404.6 | 233.1 | 42.4% |
+
+工具调用数也呈现相同趋势。在 matched 噪声下，平均工具调用从 SFT 的 **30.6** 降至 Independent-noise LOO 的 **14.7**；strong 噪声下则从 **33.4** 降至 **19.9**。
+
+因此，鲁棒策略学到的是**有效恢复**，而不是暴力重复。它通常选择更短的路径，只在故障确实发生时增加必要动作。
+
+## 不能回避的失败：RL 策略仍可能崩溃
+
+早期主实验中，中间 checkpoint 很强，但最终 checkpoint 完全不可用：
+
+| RL checkpoint | 噪声成功率 |
+| --- | ---: |
+| `iter_0000049` | 93.8% |
+| `iter_0000099` | 97.6% |
+| `iter_0000299` | **98.7%** |
+| `iter_0000449` | **98.7%** |
+| `iter_0000499` | 7.5% |
+| `iter_0000699` | 0.0% |
+
+这次崩溃属于训练动态结果，并不是最终多随机种子性能结论。它促使我们采用更严格的 checkpoint 选择和更安全的后续训练设置。
+
+多个预警信号同时出现：
+
+- 成功率饱和后，大量 group 奖励完全相同，有效梯度信号非常少；
+- Fully asynchronous rollout 使生成轨迹的策略版本与当前 actor 权重之间存在差距；
+- 在策略约束较弱时，陈旧的负 advantage 会将模型推向更短但无效的行为；
+- 当 group 内所有 rollout 都失败时，相对 advantage 变为零，策略无法自行恢复。
+
+因此，`latest` 不能作为 agentic RL 的模型选择规则。最终实验矩阵评测的是在固定协议下经过明确选择的 checkpoint。
+
+## 这些实验带来的认识
+
+### Harness 是学习问题的一部分
+
+动作语法、工具 schema、故障注入、错误处理、交互轮数和上下文截断都会改变有效 MDP。训练与评测必须使用一致的 harness 语义，否则两个都叫“ALFWorld”的实验，模型实际解决的可能是不同问题。
+
+### 在线 reward 不是独立评测
+
+训练 rollout 受到任务采样、异步策略版本和随机故障影响。因此我们使用 held-out `valid_unseen` 任务、固定采样参数、每个任务重复 4 次，并为评测独立启动推理服务。
+
+### Task-level bootstrap 与训练随机种子回答不同问题
+
+Bootstrap 置信区间描述单个 checkpoint 在未见任务上的不确定性；多个训练随机种子描述优化过程的波动，两者不能互相替代。
+
+目前 RL 结果已经包含 3 个训练随机种子，但 SFT baseline 仍只有一个训练 checkpoint。此外，在完成保持 task 配对和 seed 层次结构的 **paired task-level hierarchical bootstrap** 之前，不应把三种 Noise RL 方法之间的小差异描述为具有统计显著性。
+
+### 停止训练必须依据行为指标
+
+对于稀疏奖励 agentic RL，当 held-out 成功率停止提升、有效 group 消失、策略漂移上升或轨迹行为突然变化时，应停止训练或降低学习率。需要按固定间隔保存 checkpoint，并同时使用 clean 与 noisy held-out 评测进行选择。
+
+## 更新后的结论
+
+完整实验支持一个三阶段的智能体学习过程：
+
+1. **SFT 教会模型接口并提供初始成功行为；**
+2. **Clean RL 教会模型高效完成任务；**
+3. **Noise RL 教会模型在不可靠 harness 下鲁棒地完成任务。**
+
+本研究中最实用的配置是 Independent-noise LOO。它保留了 **95.8% clean 成功率**，在 matched 噪声下达到 **91.4%**，在 strong 噪声下仍超过 **82%**，同时生成 token 数约为 SFT 策略的一半。
+
+更广泛的结论是：高 clean reward 不会自动产生鲁棒性。如果实际部署中的智能体会遇到动作丢失、观察缺失、工具不稳定或执行反馈模糊，那么这些故障必须进入在线学习问题，并且必须与普通任务能力分开评测。
+
+## 后续实验
+
+在将这些结果写成完整论文结论之前，下一步应优先完成：
+
+1. 对方法间直接比较执行 paired hierarchical bootstrap；
+2. 增加 SFT 随机种子，或明确将 SFT 保留为固定初始化 baseline；
+3. 扫描 action-drop 和 observation-loss 概率，得到完整鲁棒性曲线，而不是只比较 5 个工作点；
+4. 在保持边际噪声分布不变的前提下，消融 group 构造方法；
+5. 测试对不同噪声强度、未见故障类型和至少一个额外智能体环境的迁移；
+6. 在成功率和轨迹长度之外，报告计算量与 wall-clock 效率。
+
+## 实验链接
+
+- [SwanLab 项目总览](https://swanlab.cn/@mousewu/agentic-noise-rl/v1/geh96f/overview)
+- [SFT 训练曲线](https://swanlab.cn/@mousewu/agentic-noise-rl/v1/geh96f/runs/77110e675af74354bd5d4b08bae801ed/chart)
+- [早期 RL 探索实验](https://swanlab.cn/@mousewu/agentic-noise-rl/v1/geh96f/runs/1af53b5369cb4bd355d4a727942/chart)
+- [项目源代码](https://github.com/mousewu/slime-noise-rl)
+
+> **适用范围说明：** 这些结果使用项目特定的 ALFWorld 文本 harness、故障注入、checkpoint 选择流程和评测协议，不能视为标准 ALFWorld 排行榜成绩。RL 数值是 3 个训练随机种子的平均值，SFT baseline 只有一个训练 checkpoint。在完成 paired hierarchical analysis 之前，不能将不同 Noise RL 变体之间的差异视为统计显著。
+
+</div>

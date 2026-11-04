@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,26 +14,36 @@
         } catch {
           document.documentElement.dataset.theme = preferred;
         }
+        try {
+          const language = localStorage.getItem('xw-language') || 'en';
+          document.documentElement.dataset.lang = language;
+          document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+        } catch {
+          document.documentElement.dataset.lang = 'en';
+        }
       })();
     </script>
     <link rel="icon" type="image/svg+xml" href="{{ '/assets/favicon.svg' | relative_url }}">
-    <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}?v=4">
-    <script src="{{ '/assets/js/theme.js' | relative_url }}?v=3" defer></script>
+    <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}?v=5">
+    <script src="{{ '/assets/js/theme.js' | relative_url }}?v=4" defer></script>
   </head>
-  <body>
-    <a class="skip-link" href="#content">Skip to content</a>
+  <body data-page-title-en="{{ page.title | default: site.title | escape }}" data-page-title-zh="{{ page.title_zh | default: page.title | default: site.title | escape }}" data-page-description-en="{{ page.description | default: site.description | escape }}" data-page-description-zh="{{ page.description_zh | default: page.description | default: site.description | escape }}">
+    <a class="skip-link" href="#content"><span data-lang-text="en">Skip to content</span><span data-lang-text="zh">跳到正文</span></a>
     <header class="site-header">
       <div class="shell nav-row">
         <a class="brand" href="{{ '/' | relative_url }}" aria-label="Xianyue Wu home">
           <span class="brand-mark" aria-hidden="true">XW</span>
-          <span>Xianyue Wu</span>
+          <span><span data-lang-text="en">Xianyue Wu</span><span data-lang-text="zh">吴先越</span></span>
         </a>
         <div class="header-actions">
           <nav class="site-nav" aria-label="Primary navigation">
-            <a href="{{ '/' | relative_url }}">Home</a>
-            <a href="{{ '/writing/' | relative_url }}">Writing</a>
+            <a href="{{ '/' | relative_url }}"><span data-lang-text="en">Home</span><span data-lang-text="zh">首页</span></a>
+            <a href="{{ '/writing/' | relative_url }}"><span data-lang-text="en">Writing</span><span data-lang-text="zh">文章</span></a>
             <a href="https://github.com/mousewu" rel="me">GitHub</a>
           </nav>
+          <button class="language-option" type="button" data-language-toggle aria-label="切换为中文" title="切换为中文">
+            <span data-language-label>中</span>
+          </button>
           <div class="theme-picker" role="group" aria-label="Color theme">
             <button class="theme-option" type="button" data-theme-option="light" aria-label="Use light theme" aria-pressed="false">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -55,7 +65,7 @@
 
     <footer class="site-footer">
       <div class="shell footer-row">
-        <p>Notes on agents that learn, act, and recover.</p>
+        <p><span data-lang-text="en">Notes on agents that learn, act, and recover.</span><span data-lang-text="zh">关于智能体学习、行动与恢复的研究记录。</span></p>
         <div class="footer-meta">
           <a class="footer-email" href="mailto:wuxianyue@gmail.com" aria-label="Email Xianyue Wu at wuxianyue@gmail.com" title="wuxianyue@gmail.com">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -63,7 +73,7 @@
               <path d="m4 7 8 6 8-6"></path>
             </svg>
           </a>
-          <p>© {{ site.time | date: '%Y' }} Xianyue Wu</p>
+          <p>© {{ site.time | date: '%Y' }} <span data-lang-text="en">Xianyue Wu</span><span data-lang-text="zh">吴先越</span></p>
         </div>
       </div>
     </footer>
