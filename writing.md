@@ -20,7 +20,7 @@ permalink: /writing/
       <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: '%Y.%m.%d' }}</time>
     </div>
     <div>
-      <p class="card-kicker"><span data-lang-text="en">Agentic RL · Experiment report</span><span data-lang-text="zh">智能体 RL · 实验报告</span></p>
+      <p class="card-kicker"><span data-lang-text="en">{{ post.kicker_en | default: 'Agentic RL · Experiment report' }}</span><span data-lang-text="zh">{{ post.kicker_zh | default: '智能体 RL · 实验报告' }}</span></p>
       <h2><a href="{{ post.url | relative_url }}"><span data-lang-text="en">{{ post.title }}</span><span data-lang-text="zh">{{ post.title_zh | default: post.title }}</span></a></h2>
       <p><span data-lang-text="en">{{ post.description }}</span><span data-lang-text="zh">{{ post.description_zh | default: post.description }}</span></p>
       <a class="text-link" href="{{ post.url | relative_url }}"><span data-lang-text="en">Read article</span><span data-lang-text="zh">阅读文章</span></a>

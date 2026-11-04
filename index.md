@@ -73,7 +73,7 @@ description_zh: Xianyue Wu 专注于大模型智能体、强化学习与可靠 A
     <article class="post-preview">
       <div class="post-preview-meta">
         <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: '%b %-d, %Y' }}</time>
-        <span>Agentic RL</span>
+        <span><span data-lang-text="en">{{ post.topic_en | default: 'Agentic RL' }}</span><span data-lang-text="zh">{{ post.topic_zh | default: '智能体 RL' }}</span></span>
       </div>
       <div>
         <h3><a href="{{ post.url | relative_url }}"><span data-lang-text="en">{{ post.title }}</span><span data-lang-text="zh">{{ post.title_zh | default: post.title }}</span></a></h3>

@@ -7,6 +7,10 @@ description_zh: "一项多随机种子的 ALFWorld 研究，对比 Clean、Match
 date: 2026-10-09
 last_modified_at: 2026-11-04
 categories: [Agentic RL, LLM Agents]
+topic_en: Agentic RL
+topic_zh: 智能体 RL
+kicker_en: Agentic RL · Experiment report
+kicker_zh: 智能体 RL · 实验报告
 reading_time: 18 min read
 reading_time_zh: 阅读约 18 分钟
 ---

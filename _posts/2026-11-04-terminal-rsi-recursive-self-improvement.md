@@ -1,18 +1,24 @@
 ---
 layout: post
-title: "Terminal-RSI: Recursive Self-Improvement for Terminal Agents"
-title_zh: "Terminal-RSI：终端智能体的递归自我改进"
-description: "A slide-by-slide introduction to Terminal-RSI, including recursive self-rewrite, policy refinement, long-horizon credit assignment, critic drift, and reward alignment."
-description_zh: "逐页介绍 Terminal-RSI，包括递归自我改写、策略强化、长程信用分配、Critic 漂移与奖励对齐"
+title: "Reading Terminal-RSI: Recursive Self-Improvement for Terminal Agents"
+title_zh: "Terminal-RSI 论文学习：终端智能体的递归自我改进"
+description: "Paper notes on Terminal-RSI, covering recursive self-rewrite, policy refinement, long-horizon credit assignment, critic drift, and reward alignment."
+description_zh: "Terminal-RSI 论文学习笔记，包括递归自我改写、策略强化、长程信用分配、Critic 漂移与奖励对齐"
 date: 2026-11-04
 categories: [Agentic RL, LLM Agents]
+topic_en: Paper Learning
+topic_zh: 论文学习
+kicker_en: Agentic RL · Paper notes
+kicker_zh: 智能体 RL · 论文学习
 reading_time: 16 min read
 reading_time_zh: 阅读约 16 分钟
 ---
 
 <div data-lang-content="en" markdown="1">
 
-Terminal-RSI studies how a terminal agent can improve recursively through execution, trajectory rewriting, critic calibration, and reinforcement learning. This article follows my 20-minute technical talk slide by slide. The slides retain their original Chinese text; the English captions explain the role of each page.
+> **Paper learning note.** This article explains and comments on published Terminal-RSI research. It is not a report of experiments conducted by this site or author. All method designs and reported benchmark results belong to the original paper unless explicitly identified as my interpretation.
+
+Terminal-RSI studies how a terminal agent can improve recursively through execution, trajectory rewriting, critic calibration, and reinforcement learning. This article follows my 20-minute paper presentation slide by slide. The slides retain their original Chinese text; the English captions explain the role of each page.
 
 The presentation is based on the Terminal-RSI work by Junyao Yang and collaborators. See the [paper](https://arxiv.org/abs/2610.22192) and [project page](https://yyang26.github.io/terminal-rsi/) for the original research.
 
@@ -20,7 +26,9 @@ The presentation is based on the Terminal-RSI work by Junyao Yang and collaborat
 
 <div data-lang-content="zh" markdown="1">
 
-Terminal-RSI 研究终端智能体如何通过执行、轨迹改写、Critic 校准和强化学习进行递归改进。本文按照我的 20 分钟技术分享逐页展开，完整保留 14 页幻灯片，并补充每一页在整体方法中的作用。
+> **文章类型：论文学习。** 本文用于介绍和理解已经发表的 Terminal-RSI 研究，不是本站或作者完成的实验报告。除明确标注为个人理解的内容外，方法设计和基准结果均来自原论文。
+
+Terminal-RSI 研究终端智能体如何通过执行、轨迹改写、Critic 校准和强化学习进行递归改进。本文按照我的 20 分钟论文分享逐页展开，完整保留 14 页幻灯片，并补充每一页在整体方法中的作用。
 
 这份分享基于 Junyao Yang 等人的 Terminal-RSI 工作。原始研究可参阅[论文](https://arxiv.org/abs/2610.22192)和[项目主页](https://yyang26.github.io/terminal-rsi/)。
 
@@ -142,15 +150,15 @@ Terminal-RSI 研究终端智能体如何通过执行、轨迹改写、Critic 校
   <figcaption><span data-lang-text="en">Slide 12 · In one RPR update, verifier outputs define progress and success, FDR/SPR construct rewards, TB-GAE assigns credit with the calibrated old critic, and PPO updates both actor and critic.</span><span data-lang-text="zh">第 12 页 · 在一次 RPR 更新中，verifier 给出进展和成功信号，FDR/SPR 构造奖励，TB-GAE 使用已校准的旧 Critic 分配信用，最后由 PPO 同时更新 Actor 与 Critic。</span></figcaption>
 </figure>
 
-<h2><span data-lang-text="en">6. Results, limitations, and practical lessons</span><span data-lang-text="zh">6. 结果、局限与实践启示</span></h2>
+<h2><span data-lang-text="en">6. Reported results, limitations, and practical lessons</span><span data-lang-text="zh">6. 论文报告的结果、局限与实践启示</span></h2>
 
-<p><span data-lang-text="en">The reported checkpoints improve across five stages, but the paper evaluates a coupled system rather than isolated components. The results establish that the combination can work; they do not fully identify the contribution of every design choice.</span><span data-lang-text="zh">论文报告的 checkpoint 在五个阶段中持续提升，但实验验证的是一套耦合系统，而不是彼此独立的组件。结果说明这套组合能够奏效，却还不能完全区分每个设计选择的独立贡献。</span></p>
+<p><span data-lang-text="en">The paper reports checkpoint improvements across five stages, but evaluates a coupled system rather than isolated components. These published results show that the combination can work; they do not fully identify the contribution of every design choice.</span><span data-lang-text="zh">原论文报告的 checkpoint 在五个阶段中持续提升，但论文评测的是一套耦合系统，而不是彼此独立的组件。这些论文结果说明整套组合能够奏效，却还不能完全区分每个设计选择的独立贡献。</span></p>
 
 <figure class="slide-figure">
   <a href="/assets/blog/terminal-rsi/slide-13-results.jpg" target="_blank" rel="noopener">
-    <img src="/assets/blog/terminal-rsi/slide-13-results.jpg" width="2134" height="1200" alt="Terminal-RSI 五个阶段的实验结果" loading="lazy">
+    <img src="/assets/blog/terminal-rsi/slide-13-results.jpg" width="2134" height="1200" alt="Terminal-RSI 论文报告的五阶段结果" loading="lazy">
   </a>
-  <figcaption><span data-lang-text="en">Slide 13 · Across four terminal suites, retained checkpoints improve from the base model through two RSR/RPR cycles. The four-suite mean rises from 20.68% to 50.58%.</span><span data-lang-text="zh">第 13 页 · 在四个终端测试集上，保留的 checkpoint 经过两轮 RSR/RPR 后持续提升，四套件平均成功率从 20.68% 提高到 50.58%。</span></figcaption>
+  <figcaption><span data-lang-text="en">Slide 13 · The paper reports that retained checkpoints improve from the base model through two RSR/RPR cycles across four terminal suites. The reported four-suite mean rises from 20.68% to 50.58%.</span><span data-lang-text="zh">第 13 页 · 原论文报告，在四个终端测试集上，保留的 checkpoint 经过两轮 RSR/RPR 后持续提升，四套件平均成功率从 20.68% 提高到 50.58%。</span></figcaption>
 </figure>
 
 <figure class="slide-figure">
