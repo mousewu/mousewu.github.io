@@ -3,13 +3,13 @@ layout: default
 title: Home
 title_zh: 首页
 description: Xianyue Wu works on language-model agents, reinforcement learning, and reliable AI systems.
-description_zh: 吴先越专注于大模型智能体、强化学习与可靠 AI 系统研究。
+description_zh: Xianyue Wu 专注于大模型智能体、强化学习与可靠 AI 系统研究。
 ---
 
 <section class="hero shell">
   <div class="hero-copy">
     <p class="eyebrow"><span data-lang-text="en">AI research · engineering · open source</span><span data-lang-text="zh">AI 研究 · 工程 · 开源</span></p>
-    <h1><span data-lang-text="en">Building reliable learning systems for language-model agents.</span><span data-lang-text="zh">构建可靠的大模型智能体学习系统。</span></h1>
+    <h1><span data-lang-text="en">Building reliable learning systems for language-model agents.</span><span data-lang-text="zh">构建可靠的大模型智能体学习系统</span></h1>
     <p class="hero-lede"><span data-lang-text="en">I study how models learn to act through tools and environments—especially the training loops, harnesses, and evaluation protocols that make agent behavior measurable and reproducible.</span><span data-lang-text="zh">我研究模型如何通过工具和环境学习行动，尤其关注让智能体行为可测量、可复现的训练循环、harness 与评测协议。</span></p>
     <div class="hero-actions">
       <a class="button primary" href="/writing/"><span data-lang-text="en">Read the technical notes</span><span data-lang-text="zh">阅读技术文章</span></a>
@@ -33,7 +33,7 @@ description_zh: 吴先越专注于大模型智能体、强化学习与可靠 AI 
 <section class="section shell" aria-labelledby="selected-work">
   <div class="section-heading">
     <p class="eyebrow"><span data-lang-text="en">Selected work</span><span data-lang-text="zh">代表项目</span></p>
-    <h2 id="selected-work"><span data-lang-text="en">Research built from the full stack.</span><span data-lang-text="zh">贯穿完整技术栈的研究。</span></h2>
+    <h2 id="selected-work"><span data-lang-text="en">Research built from the full stack.</span><span data-lang-text="zh">贯穿完整技术栈的研究</span></h2>
   </div>
   <div class="project-grid">
     <article class="project-card featured">
